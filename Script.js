@@ -1,52 +1,109 @@
-function addSearchTable(movie){
-    const row = document.getElementById('search')
+var searchresult = document.getElementById('searchresult')
+var favoriteresult = document.getElementById('favoriteresult')
+var detailresult = document.getElementById('detailresult')
+var home = document.getElementById('home')
+
+document.getElementById('logobtn').addEventListener('click',function(){
+    hideAll()
+    home.style.display='flex'
+})
+
+document.getElementById('searchBtn').addEventListener('click',function(){
+    let x = document.getElementById('value').value
+    hideAll()
+    searchresult.style.display="flex"
+    getsearch(x)
+})
+
+function hideAll(){
+    searchresult.style.display="none"
+    favoriteresult.style.display="none"
+    detailresult.style.display="none"
+    home.style.display="none"
+}
+
+function getsearch(x){
+    fetch(`https://api.jikan.moe/v3/search/anime?q=${x}`).then((response) =>{
+        return response.json()
+    }).then( data => {
+        loopsearch(data.results)
+    })
+}
+
+function loopsearch(movielist){
+    searchresult.innerHTML=''
+    for(moviedata of movielist){
+        showsearch(moviedata)
+    }
+}
+
+function showsearch(movie){
+    var resulttt = document.getElementById('searchresult')
     let cell = document.createElement('div')
-    cell.classList.add("col-sm-6","mx-auto" ,"flex") 
+    cell.classList.add("col-sm-3") 
     cell.style.margin="12px"
     cell.addEventListener('dblclick',function(){
         let confirmAdd = confirm(`Do you want to add "${movie.title}" to favorite?`)
         if(confirmAdd){
-            addToDataBase(movie)
+            addtofavorite(movie)
         }
     })
-   document.getElementById('searchbtn').addEventListener('click',function(){
-    let query = document.getElementById('searchvalue').value
-    document.getElementById('search').style.display="block"
-    document.getElementById('fav').style.display="none"
-    document.getElementById('home').style.display="none"
-    getSearchQuery(query)
-})
-
-function getSearchQuery(query){
-    fetch(`https://api.jikan.moe/v3/search/anime?q=${query}`).then((response) =>{
-        return response.json()
-    }).then( data => {
-        searchResultList(data.results)
-    })
-    console.log('2')
+    let cardint = document.createElement('div')
+    cardint.classList.add("card","text-dark","bg-light")
+    let cardbody = document.createElement('div')
+    cardbody.classList.add("card-body")
+    let image = document.createElement('img')
+    image.src = movie.image_url
+    image.classList.add("rounded","mx-auto","d-block")
+    image.style.border="3px solid white"
+    let breakk = document.createElement('br')
+    let title = document.createElement('h5')
+    title.classList.add("card-title")
+    title.innerHTML = movie.title
+    let synopsis = document.createElement('p')
+    synopsis.classList.add("card-text")
+    synopsis.innerHTML = "Synopsis : " + movie.synopsis
+    let type = document.createElement('p')
+    type.classList.add("card-text")
+    type.innerHTML = "Type : " + movie.type
+    let episodes = document.createElement('p')
+    episodes.classList.add("card-text")
+    episodes.innerHTML = "Episodes : " + movie.episodes
+    let rated = document.createElement('p')
+    rated.classList.add("card-text")
+    rated.innerHTML = "Rated : " + movie.rated
+    cardbody.appendChild(image)
+    cardbody.appendChild(breakk)
+    cardbody.appendChild(title)
+    cardbody.appendChild(synopsis)
+    cardbody.appendChild(type)
+    cardbody.appendChild(episodes)
+    cardbody.appendChild(rated)
+    cardint.appendChild(cardbody)
+    cell.appendChild(cardint)
+    resulttt.appendChild(cell)
+    console.log(movie)
 }
 
-function searchResultList(list){
-    const row = document.getElementById('search')
-    row.innerHTML=''
-    for(data of list){
-        addSearchTable(data)
-    }
-}
-
-function onLoad(){
-    document.getElementById('search').style.display="block"
-}
-
-function addToDataBase(movie){
-    var id=1
-    let data=`{"url":"${movie.url}","image_url":"${movie.image_url}","title":"${movie.title}","synopsis":"${movie.synopsis}","type":"${movie.type}","episodes":"${movie.episodes}","score":"${movie.score}","rated":"${movie.rated}","id":"${id}"}`
+function addtofavorite(movie){
     fetch(`https://se104-project-backend.du.r.appspot.com/movies `,{
             method:'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: `{"id":"632110363","movie":${data}}`
+            body: `{"id":"632110363",
+                    "movie":{
+                        "url":"${movie.url}",
+                        "image_url":"${movie.image_url}",
+                        "title":"${movie.title}",
+                        "synopsis":"${movie.synopsis}",
+                        "type":"${movie.type}",
+                        "episodes":"${movie.episodes}",
+                        "score":"${movie.score}",
+                        "rated":"${movie.rated}",
+                        "id":"1"
+                        }
+                    }`
         }).then(response=>{
             if(response.status == 200){
                 return response.json()
@@ -60,29 +117,34 @@ function addToDataBase(movie){
         })
 }
 
+document.getElementById('listBtn').addEventListener('click',function(){
+    hideAll()
+    favoriteresult.style.display="flex"
+    getfavorite()
+})
+
 function getfavorite(){
     fetch(`https://se104-project-backend.du.r.appspot.com/movies/632110363`).then((response)=>{
         return response.json()
     }).then( data=>{
-        myfav(data)
+        loopfavorite(data)
     })
 }
 
-function myfav(list){
-    const row = document.getElementById('fav')
-    row.innerHTML=''
-    for(data of list){
-        addfavtotable(data)
+function loopfavorite(favoritelist){
+    favoriteresult.innerHTML=''
+    for(favoritedata of favoritelist){
+        showfavorite(favoritedata)
     }
 }
 
-function addfavtotable(movie){
-    const roww = document.getElementById('fav')
+function showfavorite(movie){
+    
     let cell = document.createElement('div')
-    cell.classList.add("col-sm-3","mx-auto")
+    cell.classList.add("col-sm-3")
     cell.style.margin="12px"
     let cardint = document.createElement('div')
-    cardint.classList.add("card","text-white","bg-dark")
+    cardint.classList.add("card","text-dark","bg-light")
     let cardbody = document.createElement('div')
     cardbody.classList.add("card-body")
     let image = document.createElement('img')
@@ -103,7 +165,7 @@ function addfavtotable(movie){
     detailbutton.style.margin="10px";
     detailbutton.innerHTML = "Details"
     detailbutton.addEventListener('click',function(){
-        showdetail(movie.id)
+        getdetail(movie.id)
     })
     buttons.appendChild(detailbutton)
     let delbutton = document.createElement('button')
@@ -113,7 +175,7 @@ function addfavtotable(movie){
     delbutton.addEventListener('click',function(){
         let confirmDel = confirm(`Are you sure you want to delete ${movie.title}?`)
         if(confirmDel){
-            delid(movie.id)
+            deleteid(movie.id)
         }   
     })
     buttons.appendChild(delbutton)
@@ -123,32 +185,10 @@ function addfavtotable(movie){
     cardbody.appendChild(buttons)
     cardint.appendChild(cardbody)
     cell.appendChild(cardint)
-    roww.appendChild(cell)
+    favoriteresult.appendChild(cell)
 }
 
-document.getElementById('favoritebutton').addEventListener('click',function(){
-    document.getElementById('search').style.display="none"
-    document.getElementById('fav').style.display="block"
-    document.getElementById('home').style.display="none"
-    getfavorite()
-})
-
-function showdetail(id){
-    fetch(`https://se104-project-backend.du.r.appspot.com/movie/632110348/${id}`)
-    .then((response) => {
-        return response.json()
-    }).then(data => {
-        const detail = document.getElementById('det')
-        detail.innerHTML = '' 
-        document.getElementById('det').style.display="block"
-        document.getElementById('fav').style.display="none"
-        document.getElementById('search').style.display="none"
-        document.getElementById('home').style.display="none"
-        showdet(data);
-    })
-}
-
-function delid(id){
+function deleteid(id){
     fetch(`https://se104-project-backend.du.r.appspot.com/movie?id=632110363&&movieId=${id}`,{
         method: 'DELETE'
     }).then(response =>{
@@ -159,23 +199,27 @@ function delid(id){
         }
     }).then(data =>{
         alert(`Movie ${data.title} is deleted`)
+        
         getfavorite()
     }).catch(error =>{
         alert('Error')
     })
 }
 
-function showdet(movie){
-    const rowww = document.getElementById('det')
-    let button = document.createElement('button')
-    button.classList.add("btn","btn-success")
-    button.style.margin="10px"
-    button.innerHTML="Back"
-    button.addEventListener('click',function(){
-        document.getElementById('det').style.display="none"
-        document.getElementById('fav').style.display="block"
-        document.getElementById('search').style.display="none"
+function getdetail(id){
+    fetch(`https://se104-project-backend.du.r.appspot.com/movie/632110363/${id}`)
+    .then((response) => {
+        return response.json()
+    }).then(data => {
+        detailresult.innerHTML = '' 
+        hideAll()
+        detailresult.style.display="flex"
+        showdetail(data);
     })
+}
+
+function showdetail(movie){
+    
     let cell = document.createElement('div')
     cell.classList.add("col-sm-6","mx-auto")
     cell.style.margin="12px"
@@ -203,6 +247,14 @@ function showdet(movie){
     let rated = document.createElement('p')
     rated.classList.add("card-text")
     rated.innerHTML = "Rated : " + movie.rated
+    let button = document.createElement('button')
+    button.classList.add("btn","btn-primary")
+    button.style.margin="10px"
+    button.innerHTML="Back"
+    button.addEventListener('click',function(){
+        hideAll()
+        favoriteresult.style.display="flex"
+    })
     cardbody.appendChild(image)
     cardbody.appendChild(brea)
     cardbody.appendChild(title)
@@ -210,10 +262,12 @@ function showdet(movie){
     cardbody.appendChild(type)
     cardbody.appendChild(episode)
     cardbody.appendChild(rated)
-    cardint.appendChild(button)
     cardint.appendChild(cardbody)
+    cardint.appendChild(button)
     cell.appendChild(cardint)
-    rowww.appendChild(cell)
+    detailresult.appendChild(cell)
 }
 
-
+function onLoad(){
+    
+}
